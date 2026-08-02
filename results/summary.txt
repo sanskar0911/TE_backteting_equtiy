@@ -1,0 +1,43 @@
+================================================================================
+BACKTESTING SYSTEM - STRATEGY SUMMARY REPORT
+================================================================================
+Strategy Name         : RSI Strategy
+Stock Ticker          : INFY
+Date Range            : 2020-01-01 to 2024-12-31
+================================================================================
+
+PORTFOLIO PERFORMANCE & RISK METRICS:
+--------------------------------------------------------------------------------
+Initial Capital        : INR 100,000.00
+Final Portfolio Value  : INR 102,110.76
+Total Return           : 2.11%
+CAGR (Ann. Compound)   : 0.42%
+Annualized Volatility  : 9.09%
+Sharpe Ratio (Rf=0)    : 0.09
+Sortino Ratio (Rf=0)   : 0.06
+Maximum Drawdown       : -28.13%
+Market Exposure        : 25.77%
+Portfolio Turnover     : 208.22%
+Daily Hit Ratio        : 13.17%
+
+TRADING STATISTICS:
+--------------------------------------------------------------------------------
+Total Executed Trades  : 15
+Trade Win Rate         : 66.67%
+Average Winning Trade  : 5.36%
+Average Losing Trade   : -9.50%
+
+STRATEGY ASSUMPTIONS & PARAMETERS:
+--------------------------------------------------------------------------------
+1. Long-Only Execution: The strategy only buys and holds long positions.
+2. Full Position Size: 100% of available cash is deployed, rounded to whole shares.
+3. No Fractional Shares: Only whole shares are transacted on NSE.
+4. Transaction Costs: 0.10% (0.001) fee applied to all trade volumes.
+5. Execution Slippage: 0.05% (0.0005) price markup on buy, discount on sell.
+6. Execution Timing: Trades executed at Adjusted Close price on signal date.
+7. No Leverage: Portfolio runs with a leverage factor of 1.0 (no margin debt).
+8. Single Position: Only one active position is held at any given time.
+
+================================================================================
+Report generated automatically by Backtesting Equity System.
+================================================================================

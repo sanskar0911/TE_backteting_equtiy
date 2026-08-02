@@ -1,0 +1,83 @@
+# Detailed File Explanation for Equity Backtesting System (Agent & LLM Modules)
+
+---
+
+### 1. `src/llm/prompts.py`
+This file defines system and user prompt templates used for generating structured JSON evaluations from financial backtest metrics.
+
+* **Lines 1–5**: Module docstring explaining the purpose of `prompts.py`.
+* **Lines 7–20 (`ANALYSIS_SYSTEM_PROMPT`)**:
+  * **Line 7**: Role prompt setting the persona to *Senior Quantitative Analyst and AI Investment Strategist*.
+  * **Line 8**: Outlines the task: evaluate quantitative backtest results and produce an investment summary.
+  * **Lines 10–11**: System requirement enforcing **strict valid JSON output only** with no extra markdown text.
+  * **Lines 13–19**: Specifies the exact schema required (`rating`, `risk`, `recommendation`, and `confidence`).
+* **Lines 22–39 (`ANALYSIS_USER_PROMPT_TEMPLATE`)**:
+  * **Lines 22–35**: Template string containing placeholders (`{ticker}`, `{strategy}`, `{total_return}`, `{cagr}`, `{sharpe}`, etc.) to inject calculated performance metrics dynamically.
+  * **Lines 37–38**: Instructions asking the model to assess risk-adjusted return, drawdown, and win rate to produce structured JSON output.
+
+---
+
+### 2. `src/llm/analyzer.py`
+`llm/analyzer.py` bridges backtest metrics and LLM AI synthesis. It implements an OpenAI API caller with a rule-based fallback system.
+
+* **Lines 1–6**: Module header description.
+* **Lines 8–11**: System imports (`os` for environment variables, `sys` for path adjustments, `json` for parsing, `typing.Dict`/`Any` for type hints).
+* **Lines 13–14**: Appends the parent `src` directory to `sys.path` so local imports resolve cleanly.
+* **Line 16**: Imports prompt templates from `prompts.py`.
+* **Line 19**: Defines class `LLMStrategyAnalyzer`.
+* **Lines 22–23 (`__init__`)**: Initializes analyzer and retrieves an API key (`OPENAI_API_KEY` or `GEMINI_API_KEY`).
+* **Lines 25–41 (`format_prompt`)**: Populates `ANALYSIS_USER_PROMPT_TEMPLATE` with backtest metric values (scaling percentages by 100 where needed).
+* **Lines 43–51 (`analyze_performance`)**: Main entry method to get an AI rating.
+  * **Line 52**: Formats user prompt text.
+  * **Lines 55–71**: If an API key exists, it calls OpenAI's API (`gpt-4o-mini`) requesting JSON response mode (`response_format={"type": "json_object"}`) and parses the JSON string. If unconfigured or failed, it catches the exception and falls through.
+  * **Line 74**: Calls `_generate_rule_based_analysis` as a reliable fallback.
+* **Lines 76–81 (`_generate_rule_based_analysis`)**: Extracts Sharpe ratio, CAGR, max drawdown, win rate, and profit factor from the metrics dictionary.
+* **Lines 83–96**: **Rating Logic**:
+  * If Sharpe > 1.0, CAGR > 12%, Drawdown < 20% -> "Strong Buy" (Confidence 0.95).
+  * Else if Sharpe > 0.4, CAGR > 5%, Drawdown < 35% -> "Moderate Buy" (Confidence 0.88).
+  * Else if Sharpe >= 0 -> "Neutral" (Confidence 0.75).
+  * Otherwise -> "Underperform" (Confidence 0.90).
+* **Lines 97–103**: **Risk Assessment**:
+  * High if max drawdown > 30% or volatility > 25%.
+  * Moderate if max drawdown > 15%.
+  * Low otherwise.
+* **Lines 105–109**: Generates a natural language summary recommendation string.
+* **Lines 111–116**: Returns structured JSON dict matching the expected schema.
+* **Lines 119–137**: Direct execution script block testing `LLMStrategyAnalyzer` with mock backtest metrics.
+
+---
+
+### 3. `src/agent/workflow.py`
+`agent/workflow.py` coordinates the entire end-to-end backtest pipeline. It models execution steps as explicit agent graph nodes (using LangGraph when installed, or fallback sequential execution).
+
+* **Lines 1–7**: Module description outlining the node graph workflow steps.
+* **Lines 9–18**: Imports standard libraries, sets path resolution, and adds `src` to `sys.path`.
+* **Lines 20–33**: Imports local engine modules (`generate_signals`, `run_backtest`, `calculate_metrics`, plotting utilities, `generate_summary_report`, and `LLMStrategyAnalyzer`).
+* **Lines 35–40**: Gracefully checks if `langgraph` is available (`HAS_LANGGRAPH` flag).
+* **Lines 44–61 (`BacktestState`)**: Defines state dict schema using `TypedDict` carrying inputs (ticker, strategy params), data structures (`price_df`, `signals_df`, `portfolio_df`, `trade_log_df`), and outputs (`metrics`, `llm_analysis`, paths).
+
+#### Node Functions (Lines 66–183):
+* **Node 1 (`node_load_data`)**: Reads processed CSV data for `{ticker}` from `data/processed/`, parses dates, and assigns `price_df`.
+* **Node 2 (`node_run_strategy`)**: Invokes `generate_signals(...)` to generate indicators and entry/exit signals into `signals_df`.
+* **Node 3 (`node_run_backtest`)**: Runs backtest simulation (`run_backtest(...)`) considering initial capital, commissions, slippage, position sizing, stop-loss, and take-profit; populates `portfolio_df` and `trade_log_df`.
+* **Node 4 (`node_calculate_metrics`)**: Calculates equity metrics (Sharpe, CAGR, Drawdown, Win Rate, etc.) and stores them in `metrics`.
+* **Node 5 (`node_generate_charts`)**: Exports all visualization PNG charts into the results directory (`signals_chart.png`, `equity_curve.png`, `drawdown.png`, etc.).
+* **Node 6 (`node_call_llm`)**: Runs `LLMStrategyAnalyzer` to generate AI rating, risk assessment, and recommendation.
+* **Node 7 (`node_generate_report`)**: Creates and saves `summary.txt` report.
+
+#### Graph Orchestration & Execution (Lines 188–268):
+* **Lines 188–214 (`build_agent_graph`)**: Builds a `StateGraph(BacktestState)` in LangGraph connecting nodes sequentially:
+  load_data -> run_strategy -> run_backtest -> calculate_metrics -> generate_charts -> call_llm -> generate_report -> END
+* **Lines 216–260 (`run_agent_workflow`)**: Executes the workflow via `graph.invoke(initial_state)` if LangGraph is available, or runs sequential python function calls (`node_load_data` -> `node_run_strategy` -> ...) as a fallback.
+* **Lines 262–267**: CLI test execution block.
+
+---
+
+### 4. `src/main.py`
+`main.py` is the primary Command Line Interface (CLI) entry point.
+
+* **Lines 1–16**: CLI docstring and usage examples.
+* **Lines 18–26**: Standard CLI imports and imports `run_agent_workflow` from `workflow.py`.
+* **Lines 29–61 (`run_pipeline`)**: Higher-level orchestrator function that prints pipeline headers, invokes `run_agent_workflow(...)`, and returns the metrics dictionary.
+* **Lines 64–74**: Configures `argparse` flags (`ticker`, `--strategy`, `--capital`, `--commission`, `--position-size`, `--stop-loss`, `--take-profit`).
+* **Lines 76–88**: Parses command-line inputs and executes `run_pipeline`, catching exceptions if execution fails.
