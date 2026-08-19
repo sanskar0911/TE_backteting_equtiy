@@ -10,6 +10,7 @@ import os
 import textwrap
 import pandas as pd
 import streamlit as st
+from components.kpi_card import render_kpi_card
 
 def render_data_quality_page(selected_ticker: str = "INFY"):
     """
@@ -76,17 +77,24 @@ def render_data_quality_page(selected_ticker: str = "INFY"):
         st.markdown(invalid_html, unsafe_allow_html=True)
 
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Total Rows", f"{n_rows:,}")
-    col2.metric("Date Range", f"{start_date} to {end_date}")
-    col3.metric("Missing Values", n_missing, delta_color="positive" if n_missing == 0 else "negative")
-    col4.metric("Duplicate Dates", n_dup_dates, delta_color="positive" if n_dup_dates == 0 else "negative")
+    with col1:
+        render_kpi_card("Total Rows", f"{n_rows:,}", icon="📊")
+    with col2:
+        render_kpi_card("Date Range", f"{start_date[:4]}-{end_date[:4]}", delta=f"{start_date} to {end_date}", icon="🗓️")
+    with col3:
+        render_kpi_card("Missing Values", f"{n_missing}", delta="Clean" if n_missing == 0 else "Issues Detected", delta_color="positive" if n_missing == 0 else "negative", icon="🔍")
+    with col4:
+        render_kpi_card("Duplicate Dates", f"{n_dup_dates}", delta="Clean" if n_dup_dates == 0 else "Duplicates Found", delta_color="positive" if n_dup_dates == 0 else "negative", icon="♊")
 
     st.markdown("---")
 
     col5, col6, col7 = st.columns(3)
-    col5.metric("Price Anomalies (≤0)", n_anomalies, delta_color="positive" if n_anomalies == 0 else "negative")
-    col6.metric("Volume Coverage", vol_status)
-    col7.metric("Adjusted Price Status", "Adj Close Active" if "Adj Close" in df.columns else "Close Price Only")
+    with col5:
+        render_kpi_card("Price Anomalies (≤0)", f"{n_anomalies}", delta="Clean" if n_anomalies == 0 else "Anomalies Found", delta_color="positive" if n_anomalies == 0 else "negative", icon="⚠️")
+    with col6:
+        render_kpi_card("Volume Coverage", vol_status, delta_color="positive" if has_volume else "warning", icon="📈")
+    with col7:
+        render_kpi_card("Price Status", "Adj Close" if "Adj Close" in df.columns else "Close Only", icon="⚙️")
 
     st.markdown("### 📋 Preview Dataset (First 10 Rows)")
     st.dataframe(df.head(10), use_container_width=True)

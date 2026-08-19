@@ -132,20 +132,24 @@ def run_streamlit_app():
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
+        /* Remove top black line / default Streamlit header overlay */
+        header[data-testid="stHeader"] {
+            display: none !important;
+        }
+
         .stApp {
             background-color: #0b0f19 !important;
             background-image: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.12) 0%, transparent 50%) !important;
             color: #f8fafc !important;
-            font-family: 'Inter', sans-serif !important;
+            font-family: 'Inter', sans-serif;
         }
 
-        html, body, p, div, span, label, input, select {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 15px !important;
+        .stApp p, .stApp label {
+            font-family: 'Inter', sans-serif;
         }
 
         .block-container {
-            padding-top: 1.5rem !important;
+            padding-top: 1.2rem !important;
             padding-bottom: 3rem !important;
             max-width: 96% !important;
         }
@@ -157,8 +161,7 @@ def run_streamlit_app():
         }
 
         section[data-testid="stSidebar"] label,
-        section[data-testid="stSidebar"] p,
-        section[data-testid="stSidebar"] span {
+        section[data-testid="stSidebar"] p {
             color: #cbd5e1 !important;
         }
 
