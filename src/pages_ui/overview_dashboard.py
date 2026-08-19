@@ -3,7 +3,7 @@ overview_dashboard.py
 
 Page 1 — Overview Dashboard Renderer.
 Landing dashboard displaying institutional summary KPIs, equity preview chart,
-and quick launch navigation buttons.
+and quick launch inter-page navigation buttons.
 """
 
 import textwrap
@@ -77,3 +77,29 @@ def render_overview_dashboard(backtest_results: dict):
         if warnings_list:
             st.markdown("<br>", unsafe_allow_html=True)
             render_warning_list(warnings_list[:2])
+
+    st.markdown("---")
+
+    # 3. Inter-Page Quick Action Jump Panel
+    st.markdown("### 🔗 Platform Quick Action Hub")
+    col_nav1, col_nav2, col_nav3, col_nav4, col_nav5 = st.columns(5)
+
+    if col_nav1.button("⚙️ Backtest Config", use_container_width=True):
+        st.session_state["current_page"] = "Backtest"
+        st.rerun()
+
+    if col_nav2.button("📈 Detailed Results", use_container_width=True):
+        st.session_state["current_page"] = "Results"
+        st.rerun()
+
+    if col_nav3.button("🔬 Experiment Lab", use_container_width=True):
+        st.session_state["current_page"] = "Experiments"
+        st.rerun()
+
+    if col_nav4.button("🔄 Agent Workflow", use_container_width=True):
+        st.session_state["current_page"] = "Agent Workflow"
+        st.rerun()
+
+    if col_nav5.button("📄 Fact Sheet", use_container_width=True):
+        st.session_state["current_page"] = "Reports"
+        st.rerun()

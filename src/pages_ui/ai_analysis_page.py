@@ -26,13 +26,14 @@ def render_ai_analysis_page(backtest_results: dict):
     ticker = backtest_results.get("ticker", "INFY")
     strategy_name = backtest_results.get("strategy_name", "SMA")
 
-    if "ai_analysis_res" not in st.session_state or st.session_state.get("ai_analysis_ticker") != ticker:
+    if "ai_analysis_res" not in st.session_state or st.session_state.get("ai_analysis_ticker") != ticker or st.session_state.get("ai_analysis_strat") != strategy_name:
         with st.spinner("Generating LLM Quantitative Assessment..."):
             try:
                 analyzer = LLMStrategyAnalyzer()
                 ai_res = analyzer.analyze_performance(metrics, ticker, strategy_name)
                 st.session_state["ai_analysis_res"] = ai_res
                 st.session_state["ai_analysis_ticker"] = ticker
+                st.session_state["ai_analysis_strat"] = strategy_name
             except Exception as e:
                 st.error(f"AI Analyst Error: {e}")
                 return

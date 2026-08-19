@@ -228,9 +228,32 @@ def run_streamlit_app():
     # 2. Render Sidebar Navigation & Read Config
     selected_page, config = render_sidebar()
 
-    # Auto-run backtest on initial page load if no backtest stored yet
-    if "backtest_results" not in st.session_state or config.get("run_triggered"):
+    # Check strategy override from Strategy Library
+    if "override_strategy" in st.session_state:
+        config["strategy_name"] = st.session_state.pop("override_strategy")
+        if "override_strategy_kwargs" in st.session_state:
+            config["strategy_kwargs"] = st.session_state.pop("override_strategy_kwargs")
         execute_backtest_simulation(config)
+        st.session_state["active_config"] = config
+
+    # Auto-run backtest if config changed or run_triggered or no backtest stored yet
+    prev_config = st.session_state.get("active_config", {})
+    config_changed = (
+        prev_config.get("ticker") != config.get("ticker") or
+        prev_config.get("strategy_name") != config.get("strategy_name") or
+        prev_config.get("strategy_kwargs") != config.get("strategy_kwargs") or
+        prev_config.get("initial_capital") != config.get("initial_capital") or
+        prev_config.get("position_size") != config.get("position_size") or
+        prev_config.get("commission_pct") != config.get("commission_pct") or
+        prev_config.get("slippage_pct") != config.get("slippage_pct") or
+        prev_config.get("stop_loss") != config.get("stop_loss") or
+        prev_config.get("take_profit") != config.get("take_profit") or
+        config.get("run_triggered")
+    )
+
+    if "backtest_results" not in st.session_state or config_changed:
+        execute_backtest_simulation(config)
+        st.session_state["active_config"] = config
 
     backtest_results = st.session_state.get("backtest_results", {})
 

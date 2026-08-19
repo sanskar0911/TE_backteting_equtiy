@@ -52,6 +52,27 @@ def render_workflow_page(backtest_results: dict):
                     max_iterations=max_iters
                 )
                 st.session_state["agent_final_state"] = final_state
+                
+                # Inter-page synchronization: Sync Agent results to global backtest_results store
+                if final_state and final_state.get("metrics"):
+                    st.session_state["backtest_results"] = {
+                        "ticker": final_state.get("ticker", ticker),
+                        "benchmark": final_state.get("benchmark_symbol", "NIFTY50"),
+                        "strategy_name": final_state.get("strategy_name", strategy),
+                        "config": {
+                            "ticker": final_state.get("ticker", ticker),
+                            "benchmark": final_state.get("benchmark_symbol", "NIFTY50"),
+                            "strategy_name": final_state.get("strategy_name", strategy),
+                            "initial_capital": final_state.get("initial_capital", 100000.0)
+                        },
+                        "signals_df": final_state.get("signals_df"),
+                        "portfolio_df": final_state.get("portfolio_df"),
+                        "trade_log_df": final_state.get("trade_log_df"),
+                        "metrics": final_state.get("metrics"),
+                        "benchmark_df": final_state.get("benchmark_df"),
+                        "bench_comp": final_state.get("benchmark_comparison"),
+                        "warnings_list": final_state.get("warnings", [])
+                    }
 
         final_state = st.session_state.get("agent_final_state")
         if final_state:
@@ -75,6 +96,22 @@ def render_workflow_page(backtest_results: dict):
 
             history = final_state.get("experiment_history", [])
             render_loop_engineering_breakdown(history)
+
+            st.markdown("---")
+            st.markdown("### 🔗 Synchronized Agent Action Hub")
+            col_a1, col_a2, col_a3 = st.columns(3)
+
+            if col_a1.button("📈 View Agent Results", use_container_width=True):
+                st.session_state["current_page"] = "Results"
+                st.rerun()
+
+            if col_a2.button("📄 Generate Agent Fact Sheet", use_container_width=True):
+                st.session_state["current_page"] = "Reports"
+                st.rerun()
+
+            if col_a3.button("🤖 AI Quantitative Analysis", use_container_width=True):
+                st.session_state["current_page"] = "AI Analysis"
+                st.rerun()
 
     else:
         st.markdown("### 🗺️ State Node Pipeline Visualizer (Standby)")
