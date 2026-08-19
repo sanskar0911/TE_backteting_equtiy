@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equity Backtesting Dashboard | Shankh Internship</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(22, 28, 45, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #3b82f6; /* Blue */
+            --accent-green: #10b981;   /* Emerald */
+            --accent-red: #ef4444;     /* Red */
+            --font-main: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+            background-image: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 50%);
+            overflow-x: hidden;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--card-border);
+            margin-bottom: 2rem;
+        }
+
+        .logo-container h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            background: linear-gradient(to right, #3b82f6, #60a5fa, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-container p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.2rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        select {
+            background-color: #161c2d;
+            color: var(--text-primary);
+            border: 1px solid var(--card-border);
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        select:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        button {
+            background-color: var(--accent-primary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background-color: #475569;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .metric-value.positive {
+            color: var(--accent-green);
+        }
+
+        .metric-value.negative {
+            color: var(--accent-red);
+        }
+
+        .dashboard-content {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 0.8rem;
+        }
+
+        .panel-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Tabs styling */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.25rem;
+            border-radius: 0.5rem;
+        }
+
+        .tab-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.35rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .tab-btn.active {
+            color: var(--text-primary);
+            background: var(--accent-primary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .chart-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chart-img {
+            max-width: 100%;
+            max-height: 480px;
+            object-fit: contain;
+            border-radius: 4px;
+            transition: opacity 0.3s;
+        }
+
+        .info-panel {
+            min-height: 520px;
+        }
+
+        .report-pre {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            line-height: 1.4;
+            color: #cbd5e1;
+            white-space: pre-wrap;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            max-height: 450px;
+            overflow-y: auto;
+        }
+
+        /* Trade Log Table */
+        .table-container {
+            width: 100%;
+            max-height: 450px;
+            overflow-y: auto;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+
+        th {
+            background-color: rgba(0, 0, 0, 0.4);
+            color: var(--text-secondary);
+            padding: 0.8rem;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 10;
+        }
+
+        td {
+            padding: 0.75rem 0.8rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-buy {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-sell {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--accent-red);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 15, 25, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(4px);
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(59, 130, 246, 0.2);
+            border-top: 3px solid var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <h1>QUANTUM LABS</h1>
+            <p>Backtesting Equity Strategies &bull; Moving Average Crossover (20/50)</p>
+        </div>
+        <div class="controls">
+            <select id="ticker-select">
+                <option value="INFY">INFY.NS (Infosys)</option>
+                <option value="RELIANCE">RELIANCE.NS (Reliance Industries)</option>
+                <option value="TCS">TCS.NS (Tata Consultancy Services)</option>
+                <option value="HDFCBANK">HDFCBANK.NS (HDFC Bank)</option>
+                <option value="ICICIBANK">ICICIBANK.NS (ICICI Bank)</option>
+            </select>
+            <button id="run-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Run Simulation
+            </button>
+        </div>
+    </header>
+
+    <!-- Metrics Cards -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-label">Total Return</div>
+            <div class="metric-value" id="metric-total-return">0.00%</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">CAGR</div>
+            <div class="metric-value" id="metric-cagr">0.00%</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Sharpe Ratio</div>
+            <div class="metric-value" id="metric-sharpe">0.00</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Max Drawdown</div>
+            <div class="metric-value" id="metric-max-drawdown">0.00%</div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="dashboard-content">
+        <!-- Visuals Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
+                    Performance Visualizations
+                </div>
+                <div class="tabs">
+                    <button class="tab-btn active" data-chart="signals">Price & Signals</button>
+                    <button class="tab-btn" data-chart="equity">Equity Curve</button>
+                    <button class="tab-btn" data-chart="drawdown">Drawdown</button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div class="loading-overlay" id="loading-overlay">
+                    <div class="spinner"></div>
+                    <p style="font-weight: 500; font-size: 0.95rem;">Executing Backtest Pipeline...</p>
+                </div>
+                <img id="display-chart" class="chart-img" src="" alt="Select stock and run simulation">
+            </div>
+        </div>
+
+        <!-- Data/Report Panel -->
+        <div class="panel info-panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Simulation Output
+                </div>
+                <div class="tabs">
+                    <button class="tab-btn active" data-info="report">Report</button>
+                    <button class="tab-btn" data-info="tradelog">Trade Log</button>
+                </div>
+            </div>
+
+            <!-- Report Pre-formatted block -->
+            <div id="info-report" class="info-content">
+                <pre class="report-pre" id="report-text">Click "Run Simulation" to execute the backtest.</pre>
+            </div>
+
+            <!-- Trade Log Table -->
+            <div id="info-tradelog" class="info-content hidden">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Price (INR)</th>
+                                <th>Shares</th>
+                                <th>Value (INR)</th>
+                                <th>Cost (INR)</th>
+                                <th>Cash (INR)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trade-log-tbody">
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                                    No simulation data loaded.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const select = document.getElementById('ticker-select');
+        const runBtn = document.getElementById('run-btn');
+        const loading = document.getElementById('loading-overlay');
+        const displayChart = document.getElementById('display-chart');
+        const reportText = document.getElementById('report-text');
+        const tradeLogTbody = document.getElementById('trade-log-tbody');
+        
+        // Metrics elements
+        const metricTotalReturn = document.getElementById('metric-total-return');
+        const metricCagr = document.getElementById('metric-cagr');
+        const metricSharpe = document.getElementById('metric-sharpe');
+        const metricMaxDrawdown = document.getElementById('metric-max-drawdown');
+
+        // Current active state
+        let currentTicker = '';
+        let activeChartTab = 'signals'; // signals, equity, drawdown
+        let activeInfoTab = 'report';   // report, tradelog
+
+        // Helper to format currency
+        function formatCurrency(val) {
+            return parseFloat(val).toLocaleString('en-IN', {
+                maximumFractionDigits: 2,
+                minimumFractionDigits: 2
+            });
+        }
+
+        // Toggle Chart Tabs
+        document.querySelectorAll('[data-chart]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('[data-chart]').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                activeChartTab = e.target.dataset.chart;
+                updateChartImage();
+            });
+        });
+
+        // Toggle Info Tabs
+        document.querySelectorAll('[data-info]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('[data-info]').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                activeInfoTab = e.target.dataset.info;
+                
+                document.querySelectorAll('.info-content').forEach(c => c.classList.add('hidden'));
+                document.getElementById(`info-${activeInfoTab}`).classList.remove('hidden');
+            });
+        });
+
+        function updateChartImage() {
+            if (!currentTicker) return;
+            // Map active tab to image filename
+            let filename = '';
+            if (activeChartTab === 'signals') filename = 'signals_chart.png';
+            else if (activeChartTab === 'equity') filename = 'equity_curve.png';
+            else if (activeChartTab === 'drawdown') filename = 'drawdown.png';
+
+            // Add cache buster query parameter to force image reload
+            displayChart.src = `results/${filename}?t=${new Date().getTime()}`;
+        }
+
+        function renderMetrics(metrics) {
+            if (!metrics) return;
+
+            const totalReturnVal = metrics["Total Return"] !== undefined ? metrics["Total Return"] : 0;
+            const cagrVal = metrics["CAGR"] !== undefined ? metrics["CAGR"] : 0;
+            const sharpeVal = metrics["Sharpe Ratio"] !== undefined ? metrics["Sharpe Ratio"] : 0;
+            const drawdownVal = metrics["Maximum Drawdown"] !== undefined ? metrics["Maximum Drawdown"] : 0;
+
+            metricTotalReturn.innerText = (totalReturnVal * 100).toFixed(2) + '%';
+            metricCagr.innerText = (cagrVal * 100).toFixed(2) + '%';
+            metricSharpe.innerText = sharpeVal.toFixed(2);
+            metricMaxDrawdown.innerText = (drawdownVal * 100).toFixed(2) + '%';
+
+            metricTotalReturn.className = 'metric-value ' + (totalReturnVal >= 0 ? 'positive' : 'negative');
+            metricCagr.className = 'metric-value ' + (cagrVal >= 0 ? 'positive' : 'negative');
+            metricMaxDrawdown.className = 'metric-value negative'; // drawdown is always risk/negative
+        }
+
+        function renderTradeLog(trades) {
+            if (!trades || trades.length === 0) {
+                tradeLogTbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                            No trades executed in this backtest period.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tradeLogTbody.innerHTML = trades.map(t => {
+                const typeClass = t.Type === 'BUY' ? 'badge-buy' : 'badge-sell';
+                const dateStr = new Date(t.Date).toLocaleDateString('en-IN', {
+                    year: 'numeric', month: 'short', day: '2-digit'
+                });
+                return `
+                    <tr>
+                        <td style="font-family: var(--font-mono); font-size: 0.8rem;">${dateStr}</td>
+                        <td><span class="badge ${typeClass}">${t.Type}</span></td>
+                        <td style="text-align: right;">${formatCurrency(t.Price)}</td>
+                        <td style="text-align: right; font-weight: 500;">${parseInt(t.Shares).toLocaleString()}</td>
+                        <td style="text-align: right;">${formatCurrency(t.Value)}</td>
+                        <td style="text-align: right; color: var(--text-secondary);">${formatCurrency(t["Transaction Cost"])}</td>
+                        <td style="text-align: right; font-family: var(--font-mono); font-size: 0.8rem;">${formatCurrency(t["Remaining Cash"])}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function runBacktest(ticker) {
+            runBtn.disabled = true;
+            loading.classList.add('active');
+
+            try {
+                const response = await fetch(`/api/run?ticker=${ticker}`);
+                if (!response.ok) {
+                    throw new Error(`Server returned HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    currentTicker = ticker;
+                    // Update Text Report
+                    reportText.innerText = data.summary;
+                    
+                    // Display metrics directly from logic calculation
+                    renderMetrics(data.metrics);
+
+                    // Render trade log
+                    renderTradeLog(data.trades);
+
+                    // Update Image
+                    updateChartImage();
+                } else {
+                    alert(`Simulation failed: ${data.message}`);
+                }
+            } catch (err) {
+                console.error(err);
+                alert(`Error running simulation: ${err.message}`);
+            } finally {
+                loading.classList.remove('active');
+                runBtn.disabled = false;
+            }
+        }
+
+        // Event listeners
+        runBtn.addEventListener('click', () => {
+            const ticker = select.value;
+            runBacktest(ticker);
+        });
+
+        // Trigger default backtest on load
+        window.addEventListener('load', () => {
+            const ticker = select.value;
+            runBacktest(ticker);
+        });
+    </script>
+</body>
+</html>

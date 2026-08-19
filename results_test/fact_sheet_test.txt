@@ -1,0 +1,60 @@
+================================================================================
+FINAL STRATEGY FACT SHEET — SHANKH / DECUPLE INTERNSHIP 2026-27 (TE1)
+================================================================================
+
+1. STRATEGY SPECIFICATIONS & METADATA
+--------------------------------------------------------------------------------
+Strategy Name         : SMA Crossover
+Stock Ticker / Universe: RELIANCE
+Hypothesis            : Quantitative momentum / trend following strategy
+Date Range            : 2020-01-01 to 2024-12-31
+Initial Capital        : INR 100,000.00
+Final Portfolio Value  : INR 165,000.00
+
+2. EXECUTION & PORTFOLIO RULES
+--------------------------------------------------------------------------------
+Position Allocation   : 20% max per trade
+Maximum Position Cap  : 10 simultaneous positions
+Rebalancing Frequency : Daily
+Transaction Cost Rate : 0.10% (0.1% per trade)
+Execution Slippage    : 0.05% (0.05% per trade)
+Stop Loss / Take Profit: SL None% | TP None%
+
+3. PERFORMANCE & RETURN METRICS
+--------------------------------------------------------------------------------
+Total Return          : 65.00%
+CAGR (Compound Ann)   : 12.50%
+Annualized Volatility : 18.00%
+Sharpe Ratio (Rf=0)   : 0.7200
+Sortino Ratio (Rf=0)  : 0.9500
+Maximum Drawdown (MDD): -15.00%
+
+4. TRADING & EXPOSURE STATISTICS
+--------------------------------------------------------------------------------
+Total Executed Trades : 24
+Trade Win Rate        : 55.00%
+Annual Portfolio Turnover: 120.00%
+Market Time Exposure  : 65.00%
+
+5. BENCHMARK COMPARISON (NIFTY50)
+--------------------------------------------------------------------------------
+Strategy CAGR vs Benchmark: 12.50% vs 14.00%
+Excess Annual Return   : -1.50%
+Strategy Sharpe vs Bench  : 0.72 vs 0.82
+Portfolio Beta        : 0.95
+Correlation with Bench: 0.88
+Information Ratio     : -0.20
+
+6. OUT-OF-SAMPLE VALIDATION & ROBUSTNESS
+--------------------------------------------------------------------------------
+Out-of-Sample Sharpe  : 0.0000
+Sharpe Degradation %  : 0.0%
+Validation Status     : PASSED
+
+7. RESEARCH VALIDATION WARNINGS & RISK AUDIT
+--------------------------------------------------------------------------------
+  None - All quantitative checks passed.
+
+================================================================================
+Generated automatically by Equity Backtesting Framework.
+================================================================================
