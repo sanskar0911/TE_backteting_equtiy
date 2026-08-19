@@ -54,151 +54,206 @@ from report import generate_summary_report
 
 def run_streamlit_app():
     st.set_page_config(
-        page_title="Institutional Equity Backtesting Suite",
-        page_icon="🏛️",
+        page_title="Equity Backtesting Dashboard | Shankh Internship",
+        page_icon="📈",
         layout="wide",
         initial_sidebar_state="expanded"
     )
 
-    # Comprehensive Custom CSS for High Visibility, Perfect Typography & Large Metric Display
+    # Custom CSS matching index.html dark design system and controlling image/text sizes
     st.markdown("""
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
-        html, body, [class*="css"] {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
-            font-size: 17px !important;
+        /* Dark Theme Foundation from index.html */
+        .stApp {
+            background-color: #0b0f19 !important;
+            background-image: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 50%) !important;
+            color: #f8fafc !important;
+            font-family: 'Inter', sans-serif !important;
         }
 
-        /* Main Container Padding */
+        html, body, p, div, span, label, input, select {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 16px !important;
+        }
+
         .block-container {
-            padding-top: 2rem !important;
+            padding-top: 1.8rem !important;
             padding-bottom: 3rem !important;
-            max-width: 96% !important;
+            max-width: 95% !important;
         }
 
-        /* Headers */
-        .main-header {
-            font-size: 2.8rem !important;
+        /* Logo Header */
+        .logo-header {
+            font-size: 2.2rem !important;
             font-weight: 800 !important;
-            color: #0F172A !important;
-            letter-spacing: -0.5px !important;
+            letter-spacing: -0.025em !important;
+            background: linear-gradient(to right, #3b82f6, #60a5fa, #10b981) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
             margin-bottom: 0.2rem !important;
         }
 
-        .sub-header {
-            font-size: 1.25rem !important;
-            font-weight: 600 !important;
-            color: #475569 !important;
-            margin-bottom: 2.0rem !important;
+        .logo-sub {
+            color: #94a3b8 !important;
+            font-size: 1.1rem !important;
+            font-weight: 500 !important;
+            margin-bottom: 1.8rem !important;
         }
 
-        /* Metric Cards Custom Styling */
-        div[data-testid="stMetricValue"] {
-            font-size: 2.2rem !important;
-            font-weight: 800 !important;
-            color: #0F172A !important;
-            line-height: 1.2 !important;
+        /* Metric Cards matching index.html */
+        div[data-testid="metric-container"] {
+            background: rgba(22, 28, 45, 0.85) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 0.75rem !important;
+            padding: 1.25rem 1.5rem !important;
+            backdrop-filter: blur(10px) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+            transition: transform 0.3s, border-color 0.3s !important;
+        }
+
+        div[data-testid="metric-container"]:hover {
+            transform: translateY(-2px) !important;
+            border-color: rgba(255, 255, 255, 0.2) !important;
         }
 
         div[data-testid="stMetricLabel"] {
-            font-size: 1.05rem !important;
-            font-weight: 700 !important;
-            color: #334155 !important;
+            color: #94a3b8 !important;
+            font-size: 0.9rem !important;
+            font-weight: 600 !important;
             text-transform: uppercase !important;
-            letter-spacing: 0.5px !important;
-            margin-bottom: 0.25rem !important;
+            letter-spacing: 0.05em !important;
+            margin-bottom: 0.4rem !important;
+        }
+
+        div[data-testid="stMetricValue"] {
+            font-size: 2.0rem !important;
+            font-weight: 700 !important;
+            color: #f8fafc !important;
         }
 
         div[data-testid="stMetricDelta"] {
-            font-size: 1.05rem !important;
-            font-weight: 700 !important;
+            font-size: 1.0rem !important;
+            font-weight: 600 !important;
         }
 
-        /* Card background box */
-        div[data-testid="metric-container"] {
-            background-color: #F8FAFC !important;
-            border: 2px solid #E2E8F0 !important;
-            border-left: 6px solid #2563EB !important;
-            border-radius: 14px !important;
-            padding: 18px 22px !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
-            margin-bottom: 12px !important;
-        }
-
-        /* Subheader & Section Titles */
+        /* Section Headings */
         .stMarkdown h2, h2 {
-            font-size: 1.8rem !important;
-            font-weight: 800 !important;
-            color: #0F172A !important;
-            margin-top: 1.5rem !important;
-            margin-bottom: 1.0rem !important;
+            font-size: 1.6rem !important;
+            font-weight: 700 !important;
+            color: #f8fafc !important;
+            margin-top: 1.2rem !important;
+            margin-bottom: 0.8rem !important;
         }
 
         .stMarkdown h3, h3 {
-            font-size: 1.45rem !important;
-            font-weight: 700 !important;
-            color: #1E293B !important;
-            margin-top: 1.2rem !important;
-        }
-
-        /* Tab Bar Customization */
-        button[data-baseweb="tab"] {
-            font-size: 1.2rem !important;
-            font-weight: 700 !important;
-            padding: 14px 28px !important;
-            border-radius: 10px 10px 0 0 !important;
-        }
-
-        button[data-baseweb="tab"][aria-selected="true"] {
-            color: #2563EB !important;
-            border-bottom: 4px solid #2563EB !important;
-            background-color: rgba(37, 99, 235, 0.08) !important;
+            font-size: 1.3rem !important;
+            font-weight: 600 !important;
+            color: #3b82f6 !important;
         }
 
         /* Sidebar Styling */
         section[data-testid="stSidebar"] {
-            background-color: #F1F5F9 !important;
-            border-right: 2px solid #E2E8F0 !important;
-            padding-top: 1.5rem !important;
+            background-color: #111827 !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
         }
 
-        section[data-testid="stSidebar"] label {
-            font-size: 1.1rem !important;
+        section[data-testid="stSidebar"] label,
+        section[data-testid="stSidebar"] p,
+        section[data-testid="stSidebar"] span {
+            color: #e2e8f0 !important;
+            font-size: 1.05rem !important;
+            font-weight: 600 !important;
+        }
+
+        section[data-testid="stSidebar"] h1, 
+        section[data-testid="stSidebar"] h2, 
+        section[data-testid="stSidebar"] h3 {
+            color: #3b82f6 !important;
+            font-size: 1.25rem !important;
             font-weight: 700 !important;
-            color: #1E293B !important;
         }
 
-        /* Primary Action Buttons */
+        /* Tabs styling matching index.html */
+        button[data-baseweb="tab"] {
+            background: rgba(0, 0, 0, 0.2) !important;
+            color: #94a3b8 !important;
+            font-size: 1.05rem !important;
+            font-weight: 600 !important;
+            padding: 10px 20px !important;
+            border-radius: 0.5rem !important;
+            margin-right: 6px !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        }
+
+        button[data-baseweb="tab"][aria-selected="true"] {
+            color: #ffffff !important;
+            background: #3b82f6 !important;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+        }
+
+        /* CRITICAL FIX: IMAGE SIZING CONTROL (Prevents massive 1000px height images) */
+        img {
+            max-height: 420px !important;
+            max-width: 100% !important;
+            object-fit: contain !important;
+            border-radius: 8px !important;
+            margin: 0 auto !important;
+            display: block !important;
+            background-color: rgba(15, 23, 42, 0.6) !important;
+            padding: 8px !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        }
+
+        /* Buttons matching index.html */
         div.stButton > button {
-            font-size: 1.2rem !important;
-            font-weight: 800 !important;
-            padding: 14px 32px !important;
-            border-radius: 12px !important;
-            background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
-            color: #FFFFFF !important;
+            background-color: #3b82f6 !important;
+            color: #ffffff !important;
+            font-size: 1.05rem !important;
+            font-weight: 600 !important;
+            padding: 12px 26px !important;
+            border-radius: 0.5rem !important;
             border: none !important;
-            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
-            transition: all 0.2s ease !important;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+            transition: all 0.3s ease !important;
         }
 
         div.stButton > button:hover {
-            transform: translateY(-2px) !important;
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45) !important;
+            background-color: #2563eb !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.45) !important;
         }
 
-        /* Warnings & Notifications */
+        /* Preformatted Report & Monospace Code */
+        pre, code, div.stCodeBlock {
+            font-family: 'JetBrains Mono', monospace !important;
+            font-size: 0.95rem !important;
+            background: rgba(0, 0, 0, 0.4) !important;
+            color: #cbd5e1 !important;
+            border-radius: 0.5rem !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        }
+
+        /* Dataframe tables */
+        div[data-testid="stDataFrame"] {
+            border-radius: 0.5rem !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            font-size: 0.95rem !important;
+        }
+
+        /* Alert boxes */
         div.stAlert {
-            font-size: 1.1rem !important;
-            font-weight: 600 !important;
-            border-radius: 12px !important;
-            padding: 18px 22px !important;
+            font-size: 1.05rem !important;
+            border-radius: 0.5rem !important;
+            background-color: rgba(30, 41, 59, 0.8) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("<div class='main-header'>🏛️ Institutional Equity Backtesting & Research Suite</div>", unsafe_allow_html=True)
-    st.markdown("<div class='sub-header'>Shankh / Decuple Internship 2026-27 (Project TE1) — Indian Equities Algorithmic Framework</div>", unsafe_allow_html=True)
+    st.markdown("<div class='logo-header'>QUANTUM LABS — EQUITY BACKTESTING</div>", unsafe_allow_html=True)
+    st.markdown("<div class='logo-sub'>Shankh / Decuple Internship 2026-27 (Project TE1) &bull; Algorithmic Strategy & Risk Engine</div>", unsafe_allow_html=True)
 
     # --- Sidebar Configuration ---
     st.sidebar.header("⚙️ Strategy & Execution Setup")
@@ -293,7 +348,7 @@ def run_streamlit_app():
     warnings_list = generate_research_warnings(metrics, bench_comp)
 
     # --- KPI Metrics Display ---
-    st.subheader(f"📊 Strategy Performance Summary: {selected_ticker} ({selected_strategy}) vs {selected_benchmark}")
+    st.subheader(f"📊 Performance Summary: {selected_ticker} ({selected_strategy}) vs {selected_benchmark}")
 
     col1, col2, col3, col4, col5 = st.columns(5)
     col1.metric("Total Return", f"{metrics['Total Return']*100:.2f}%")
@@ -349,23 +404,23 @@ def run_streamlit_app():
 
         row1_col1, row1_col2 = st.columns(2)
         with row1_col1:
-            st.image(signals_chart, caption="Strategy Crossover & Signal Markers", use_container_width=True)
+            st.image(signals_chart, caption="Strategy Crossover & Signal Markers")
         with row1_col2:
-            st.image(equity_chart, caption="Portfolio Equity Growth Curve", use_container_width=True)
+            st.image(equity_chart, caption="Portfolio Equity Growth Curve")
 
         row2_col1, row2_col2 = st.columns(2)
         with row2_col1:
-            st.image(drawdown_chart, caption="Underwater Historical Drawdown", use_container_width=True)
+            st.image(drawdown_chart, caption="Underwater Historical Drawdown")
         with row2_col2:
-            st.image(sharpe_chart, caption="Rolling Annualized Sharpe Ratio (60-Day)", use_container_width=True)
+            st.image(sharpe_chart, caption="Rolling Annualized Sharpe Ratio (60-Day)")
 
         row3_col1, row3_col2 = st.columns(2)
         with row3_col1:
-            st.image(monthly_chart, caption="Monthly Return Performance Breakdown", use_container_width=True)
+            st.image(monthly_chart, caption="Monthly Return Performance Breakdown")
         with row3_col2:
-            st.image(trade_dist_chart, caption="Trade Return Distribution", use_container_width=True)
+            st.image(trade_dist_chart, caption="Trade Return Distribution")
 
-        st.image(alloc_chart, caption="Portfolio Capital Allocation (Cash vs Equity)", use_container_width=True)
+        st.image(alloc_chart, caption="Portfolio Capital Allocation (Cash vs Equity)")
 
     with tab2:
         st.subheader("🔬 Quantitative Experiment Engine & Validation Suite")
@@ -377,7 +432,7 @@ def run_streamlit_app():
             if st.button("▶ Run Parameter Sweep"):
                 with st.spinner("Executing grid search parameter sweep..."):
                     sweep_df = run_parameter_sweep(df, strategy_name=selected_strategy, initial_capital=initial_capital)
-                    st.dataframe(sweep_df, use_container_width=True)
+                    st.dataframe(sweep_df)
 
         elif exp_mode == "Out-of-Sample Validation":
             if st.button("▶ Run Out-of-Sample Split Audit"):
@@ -390,7 +445,7 @@ def run_streamlit_app():
                 with st.spinner("Testing sensitivity under execution cost & sizing variations..."):
                     rob_res = run_robustness_analysis(df, strategy_name=selected_strategy, baseline_params=strategy_kwargs, initial_capital=initial_capital)
                     st.write("### Robustness Stability Summary:", rob_res["summary"])
-                    st.dataframe(rob_res["details_df"], use_container_width=True)
+                    st.dataframe(rob_res["details_df"])
 
         elif exp_mode == "Market Regime Breakdown":
             if bench_df is not None:
@@ -420,12 +475,12 @@ def run_streamlit_app():
                 st.subheader("📜 Research History Log Across Iterations")
                 history_df = pd.DataFrame(workflow_state.get("experiment_history", []))
                 if not history_df.empty:
-                    st.dataframe(history_df, use_container_width=True)
+                    st.dataframe(history_df)
 
     with tab4:
         st.subheader("📋 Executed Trade History")
         if not trade_log_df.empty:
-            st.dataframe(trade_log_df, use_container_width=True)
+            st.dataframe(trade_log_df)
             csv_data = trade_log_df.to_csv().encode("utf-8")
             st.download_button(
                 label="📥 Download Trade Log CSV",
